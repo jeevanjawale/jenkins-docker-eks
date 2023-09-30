@@ -1,24 +1,21 @@
-# Stage 1: Build the Node.js application
-FROM node:14 AS builder
+# Stage 1: Build application dependencies
+FROM node:14 AS build-deps
 
+# Setting working directory. All the path will be relative to WORKDIR
 WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm install
+
+# Stage 2: Build application image
+FROM alpine:latest
+
+# Copy built application dependencies from stage 1
+COPY --from=build-deps /usr/src/app/node_modules ./node_modules
 
 # Bundle app source
 COPY . .
-
-# Stage 2: Create the final image with a smaller base image
-FROM node:14-alpine
-
-WORKDIR /usr/src/app
-
-# Copy only the necessary files from the builder stage
-COPY --from=builder /usr/src/app/package*.json ./
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/index.js ./
 
 EXPOSE 3000
 CMD [ "node", "index.js" ]
