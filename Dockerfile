@@ -1,18 +1,16 @@
-# Stage 1: Build application dependencies
-FROM node:14 AS build-deps
+FROM node:14
 
 # Setting working directory. All the path will be relative to WORKDIR
 WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package.json package-lock.json ./
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
+
 RUN npm install
-
-# Stage 2: Build application image
-FROM alpine:latest
-
-# Copy built application dependencies from stage 1
-COPY --from=build-deps /usr/src/app/node_modules ./node_modules
+# If you are building your code for production
+# RUN npm ci --only=production
 
 # Bundle app source
 COPY . .
